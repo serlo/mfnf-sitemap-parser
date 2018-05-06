@@ -23,6 +23,13 @@ pub fn book(root: &Element) -> Result<Book, String> {
             .filter_map(|e|
                 if let Element::List(ref l) = *e {Some(l)} else {None})
             .next();
+        let subheadings = heading.content.iter()
+            .filter_map(|e| if let Element::Heading(ref h) = *e {Some(h)} else {None});
+
+        let mut parts = vec![];
+        for subheading in subheadings {
+            parts.push(part(subheading)?)
+        }
 
         Ok(Book {
             title,
@@ -31,11 +38,40 @@ pub fn book(root: &Element) -> Result<Book, String> {
             } else {
                 vec![]
             },
-            parts: vec![],
+            parts,
         })
     } else {
         Err("Root element must be a \"Document\"!".into())
     }
+}
+
+pub fn part(heading: &Heading) -> Result<Part, String> {
+    let title = extract_plain_text(&heading.caption)
+        .trim().to_string();
+    let lists = heading.content.iter()
+        .filter_map(|e| if let Element::List(ref l) = *e {Some(l)} else {None})
+        .collect::<Vec<&List>>();
+    let first_is_marker = lists.first()
+        .map(|l| l.content.iter()
+            .filter_map(|e| if let Element::ListItem(ref i) = *e {Some(i)} else {None})
+            .all(|i| i.content.iter().all(
+                |e| if let Element::InternalReference(_) = *e {false} else {true})
+            )
+        ).unwrap_or(false);
+
+    let markers = if let Some(list) = lists.first() {
+        if first_is_marker {
+            marker_list(list)?
+        } else { vec![] }
+    } else {
+        vec![]
+    };
+
+    Ok(Part {
+        title,
+        markers,
+        chapters: vec![],
+    })
 }
 
 pub fn subtarget_list(list: &List) -> Result<Vec<Subtarget>, String> {

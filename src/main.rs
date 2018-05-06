@@ -16,6 +16,9 @@ fn main() {
 * [[Mathe für Nicht-Freaks: Beispielkapitel: Grundlegende Formatierungen|Grundlegende Formatierungen]]
 
 == Eigene Formatierungen ==
+* include:
+** minimal
+
 * [[Mathe für Nicht-Freaks: Beispielkapitel: Semantische Blöcke|Semantische Blöcke]]
 
 == Noprint-Content ==
