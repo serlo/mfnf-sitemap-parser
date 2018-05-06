@@ -12,6 +12,7 @@ path = "src/main.rs"
 
 [dependencies]
 mediawiki_parser = "0.3"
+mwparser_utils = { git = "https://github.com/vroland/mediawiki-parser-utils" }
 serde = "1.0"
 serde_derive = "1.0"
 serde_yaml = "0.7"
