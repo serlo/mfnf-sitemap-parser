@@ -28,6 +28,7 @@ Currently, all markers are:
 | include | For non-chapters: Sets default wether to include chapters for this subtarget. For chapters: Includes a chapter for this subtarget. May have a sublist listing all headings to include, all others will be excluded. |
 | exclude | For non-chapters: Sets default wether to exclude chapters for this subtarget. For chapters: Excludes a chapter for this subtarget. May have a sublist listing all headings to exclude, all others will be included. |
 | after | Sets a marker to include something after this *part* or *chapter* |
+| todo | Leave a todo message |
 
 
 This example is specific to the pdf export tool:
