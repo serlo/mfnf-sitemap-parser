@@ -19,5 +19,5 @@ pub fn parse_sitemap(input: &str) -> Result<Book, String> {
         Ok(t) => t,
         Err(error) => return Err(error.description().into())
     };
-    return builder::parse_book(&tree);
+    return builder::book(&tree);
 }

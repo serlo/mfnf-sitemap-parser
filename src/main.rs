@@ -7,7 +7,10 @@ fn main() {
 ** all
 ** print
 * exclude:
-** minimal
+** minimal:
+*** Hey bla!
+*** Hey ho!
+* todo: Hello World!
 
 == Grundlegende Formatierungen von Wikibooks ==
 * [[Mathe für Nicht-Freaks: Beispielkapitel: Grundlegende Formatierungen|Grundlegende Formatierungen]]
