@@ -65,6 +65,7 @@ pub struct Part {
 pub struct Chapter {
     pub title: String,
     pub path: String,
+    pub revision: String,
     pub markers: Markers,
 }
 
