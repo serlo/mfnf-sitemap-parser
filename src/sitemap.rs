@@ -169,6 +169,11 @@ impl Normalize for Book {
         for part in &mut self.parts {
             part.normalize()?;
         }
+        let new_parts = self.parts.drain(..)
+            .filter(|part| !part.chapters.is_empty())
+            .collect();
+
+        self.parts = new_parts;
         Ok(())
     }
 }
