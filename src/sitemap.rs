@@ -92,6 +92,27 @@ impl Normalize for Markers {
     }
 }
 
+fn deny_parameters(markers: &Markers) -> Result<(), String> {
+    for subtarget in &markers.include.subtargets {
+        if !subtarget.parameters.is_empty() {
+            return Err("Include markers can only have parameters at \
+                        the chapter level!".into())
+        }
+    }
+    for subtarget in &markers.exclude.subtargets {
+        if !subtarget.parameters.is_empty() {
+            return Err("Exclude markers can only have parameters at \
+                        the chapter level!".into())
+        }
+    }
+    Ok(())
+}
+
+fn child_overrides(child_markers: &Markers, subtarget: &Subtarget) -> bool {
+    child_markers.include.subtargets.contains(subtarget) ||
+    child_markers.exclude.subtargets.contains(subtarget)
+}
+
 pub trait Normalize {
     /// Propagate includes / excludes the chapters. Chapter markers take precedence.
     fn normalize(&mut self) -> Result<(), String>;
@@ -106,6 +127,20 @@ impl Normalize for Chapter {
 impl Normalize for Part {
     fn normalize(&mut self) -> Result<(), String> {
         self.markers.normalize()?;
+        deny_parameters(&self.markers)?;
+
+        for child in &mut self.chapters {
+            for subtarget in &self.markers.include.subtargets {
+                if !child_overrides(&child.markers, subtarget) {
+                    child.markers.include.subtargets.insert(subtarget.clone());
+                }
+            }
+            for subtarget in &self.markers.exclude.subtargets {
+                if !child_overrides(&child.markers, subtarget) {
+                    child.markers.exclude.subtargets.insert(subtarget.clone());
+                }
+            }
+        }
         for chapter in &mut self.chapters {
             chapter.normalize()?;
         }
@@ -116,6 +151,21 @@ impl Normalize for Part {
 impl Normalize for Book {
      fn normalize(&mut self) -> Result<(), String> {
         self.markers.normalize()?;
+        deny_parameters(&self.markers)?;
+
+        for child in &mut self.parts {
+            for subtarget in &self.markers.include.subtargets {
+                if !child_overrides(&child.markers, subtarget) {
+                    child.markers.include.subtargets.insert(subtarget.clone());
+                }
+            }
+            for subtarget in &self.markers.exclude.subtargets {
+                if !child_overrides(&child.markers, subtarget) {
+                    child.markers.exclude.subtargets.insert(subtarget.clone());
+                }
+            }
+        }
+
         for part in &mut self.parts {
             part.normalize()?;
         }
