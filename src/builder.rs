@@ -33,14 +33,16 @@ pub fn book(root: &Element) -> Result<Book, String> {
             parts.push(part(subheading)?)
         }
 
-        Ok(Book {
+        let mut book = Book {
             title,
             markers: match mlist {
                 Some(l) => marker_list(l)?,
                 None => Markers::default()
             },
             parts,
-        })
+        };
+        book.normalize()?;
+        Ok(book)
     } else {
         Err("Root element must be a \"Document\"!".into())
     }

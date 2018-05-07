@@ -1,10 +1,11 @@
 //! Types representing the sitemap structure.
 
 use std::collections::HashSet;
+use std::hash::{Hash, Hasher};
 
 /// A book subtarget (e.g. `all`, `print`).
 /// Parameters are only allowed for chapters.
-#[derive(Serialize, Deserialize, Clone, PartialEq, Debug, Eq, Hash)]
+#[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct Subtarget {
     pub name: String,
     pub parameters: Vec<String>,
@@ -67,19 +68,59 @@ pub struct Chapter {
     pub markers: Markers,
 }
 
+impl PartialEq for Subtarget {
+    fn eq(&self, other: &Subtarget) -> bool {
+        self.name == other.name
+    }
+}
+
+impl Eq for Subtarget {}
+
+impl Hash for Subtarget {
+    fn hash<H: Hasher>(&self, state: &mut H) {
+        self.name.hash(state);
+    }
+}
+
 impl Normalize for Markers {
     fn normalize(&mut self) -> Result<(), String> {
+        if !self.include.subtargets.is_disjoint(&self.exclude.subtargets) {
+            return Err("Subtargets cannot be included and \
+                       excluded at the same time!".into())
+        }
         Ok(())
     }
 }
 
-trait Normalize {
+pub trait Normalize {
     /// Propagate includes / excludes the chapters. Chapter markers take precedence.
     fn normalize(&mut self) -> Result<(), String>;
 }
 
+impl Normalize for Chapter {
+    fn normalize(&mut self) -> Result<(), String> {
+        self.markers.normalize()
+    }
+}
+
 impl Normalize for Part {
     fn normalize(&mut self) -> Result<(), String> {
+        self.markers.normalize()?;
+        for chapter in &mut self.chapters {
+            chapter.normalize()?;
+        }
         Ok(())
     }
 }
+
+impl Normalize for Book {
+     fn normalize(&mut self) -> Result<(), String> {
+        self.markers.normalize()?;
+        for part in &mut self.parts {
+            part.normalize()?;
+        }
+        Ok(())
+    }
+}
+
+
