@@ -59,18 +59,61 @@ pub fn part(heading: &Heading) -> Result<Part, String> {
             )
         ).unwrap_or(false);
 
-    let markers = if let Some(list) = lists.first() {
-        if first_is_marker {
-            marker_list(list)?
-        } else { vec![] }
+    let markers = match lists.first() {
+        Some(list) => if first_is_marker {
+                marker_list(list)?
+            } else { vec![] },
+        None => vec![],
+    };
+
+    let chapters = if first_is_marker {
+        lists.get(1)
     } else {
-        vec![]
+        lists.get(0)
+    };
+
+    let chapters = match chapters {
+        Some(list) => {
+            let mut result = vec![];
+            for item in &list.content {
+                if let Element::ListItem(ref i) = *item {
+                    result.push(chapter(i)?)
+                }
+            }
+            result
+        },
+        None => vec![],
     };
 
     Ok(Part {
         title,
         markers,
-        chapters: vec![],
+        chapters,
+    })
+}
+
+pub fn chapter(item: &ListItem) -> Result<Chapter, String> {
+    let article_ref = item.content.iter().filter_map(
+        |e| if let Element::InternalReference(ref i) = *e {Some(i)} else {None})
+        .next();
+    let article_ref = match article_ref {
+        Some(r) => r,
+        None => return Err("Chapter list item must have an \
+                           internal reference to an article!".into())
+    };
+
+    let mlist = item.content.iter().filter_map(
+        |e| if let Element::List(ref l) = *e {Some(l)} else {None})
+        .next();
+    let markers = match mlist {
+        Some(list) => marker_list(&list)?,
+        None => vec![],
+    };
+
+    Ok(Chapter {
+        title: extract_plain_text(&article_ref.caption).trim().to_string(),
+        path: extract_plain_text(&article_ref.target).trim().to_string(),
+        markers,
     })
 }
 

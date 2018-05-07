@@ -61,5 +61,6 @@ pub struct Part {
 #[derive(Serialize, Deserialize, Clone, PartialEq, Debug)]
 pub struct Chapter {
     pub title: String,
+    pub path: String,
     pub markers: Vec<Marker>,
 }
