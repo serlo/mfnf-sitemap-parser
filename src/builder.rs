@@ -1,5 +1,7 @@
 //! implementation of the sitemap builder.
 
+use std::collections::HashSet;
+
 use sitemap::*;
 use mediawiki_parser::*;
 use mwparser_utils::util::extract_plain_text;
@@ -33,10 +35,9 @@ pub fn book(root: &Element) -> Result<Book, String> {
 
         Ok(Book {
             title,
-            markers: if let Some(l) = mlist {
-                marker_list(l)?
-            } else {
-                vec![]
+            markers: match mlist {
+                Some(l) => marker_list(l)?,
+                None => Markers::default()
             },
             parts,
         })
@@ -59,11 +60,13 @@ pub fn part(heading: &Heading) -> Result<Part, String> {
             )
         ).unwrap_or(false);
 
-    let markers = match lists.first() {
-        Some(list) => if first_is_marker {
-                marker_list(list)?
-            } else { vec![] },
-        None => vec![],
+    let markers = if first_is_marker {
+        match lists.first() {
+            Some(list) => marker_list(list)?,
+            None => Markers::default()
+        }
+    } else {
+        Markers::default()
     };
 
     let chapters = if first_is_marker {
@@ -107,7 +110,7 @@ pub fn chapter(item: &ListItem) -> Result<Chapter, String> {
         .next();
     let markers = match mlist {
         Some(list) => marker_list(&list)?,
-        None => vec![],
+        None => Markers::default(),
     };
 
     Ok(Chapter {
@@ -117,8 +120,8 @@ pub fn chapter(item: &ListItem) -> Result<Chapter, String> {
     })
 }
 
-pub fn subtarget_list(list: &List) -> Result<Vec<Subtarget>, String> {
-    let mut result = vec![];
+pub fn subtarget_list(list: &List) -> Result<HashSet<Subtarget>, String> {
+    let mut result = HashSet::new();
     for item in &list.content {
         let item = if let Element::ListItem(ref item) = *item {
             item
@@ -140,7 +143,7 @@ pub fn subtarget_list(list: &List) -> Result<Vec<Subtarget>, String> {
                  .collect::<Vec<String>>()
             );
 
-        result.push(Subtarget {
+        result.insert(Subtarget {
             name,
             parameters: params.unwrap_or(vec![]),
         });
@@ -148,8 +151,8 @@ pub fn subtarget_list(list: &List) -> Result<Vec<Subtarget>, String> {
     Ok(result)
 }
 
-pub fn marker_list(list: &List) -> Result<Vec<Marker>, String> {
-    let mut result = vec![];
+pub fn marker_list(list: &List) -> Result<Markers, String> {
+    let mut result = Markers::default();
     for item in &list.content {
         let item = if let Element::ListItem(ref item) = *item {
             item
@@ -158,6 +161,10 @@ pub fn marker_list(list: &List) -> Result<Vec<Marker>, String> {
         };
 
         let content_str = extract_plain_text(&item.content);
+        let value_str = content_str.split(':')
+            .skip(1).collect::<Vec<&str>>().join(":")
+            .trim().to_string();
+
         let marker_id = content_str
             .split(':')
             .next()
@@ -170,33 +177,21 @@ pub fn marker_list(list: &List) -> Result<Vec<Marker>, String> {
             .filter_map(|e| if let Element::List(ref l) = *e {Some(l)} else {None})
             .next();
 
-        result.push(match marker_id.as_str() {
-            "include" => Marker::IncludeMarker(IncludeMarker {
-                subtargets: if let Some(l) = sublist {
-                    subtarget_list(l)?
-                } else {
-                    vec![]
+        match marker_id.as_str() {
+            "include" => if let Some(l) = sublist {
+                    result.include.subtargets = subtarget_list(l)?
                 },
-            }),
-            "exclude" => Marker::ExcludeMarker(ExcludeMarker {
-                subtargets: if let Some(l) = sublist {
-                    subtarget_list(l)?
-                } else {
-                    vec![]
+            "exclude" => if let Some(l) = sublist {
+                    result.exclude.subtargets = subtarget_list(l)?
                 },
+            "todo" => result.todo = Some(TodoMarker {
+                message: value_str
             }),
-            "todo" => Marker::TodoMarker(TodoMarker {
-                message: content_str.split(':')
-                    .skip(1).collect::<Vec<&str>>().join(":")
-                    .trim().to_string()
-            }),
-            "after" => Marker::AfterMarker(AfterMarker {
-                path: content_str.split(':')
-                    .skip(1).collect::<Vec<&str>>().join(":")
-                    .trim().to_string()
+            "after" => result.after = Some(AfterMarker {
+                path: value_str
             }),
             _ => return Err(format!("unknown marker: {}", marker_id))
-        })
+        };
     }
     Ok(result)
 }
