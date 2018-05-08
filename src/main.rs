@@ -18,7 +18,22 @@ use structopt::StructOpt;
 struct Opt {
     /// Input MediaWiki file
     #[structopt(short = "i", long = "input", parse(from_os_str))]
-    input_file: Option<PathBuf>
+    input_file: Option<PathBuf>,
+
+    /// Output a make-compatible book dependency file for a subtarget.
+    #[structopt(short = "d", long = "deps")]
+    subtarget: Option<String>,
+
+    /// Target file extension for <subtarget>.
+    #[structopt(short = "e", long = "ext")]
+    target_extension: Option<String>
+}
+
+fn filename_to_make(input: &str) -> String {
+    input.replace(" ", "_")
+        .replace(":", "@COLON@")
+        .replace("(", "@LBR@")
+        .replace(")", "@RBR@")
 }
 
 fn main() {
@@ -39,10 +54,25 @@ fn main() {
         }
     };
 
-    println!("{}",
-        serde_yaml::to_string(
-            &mfnf_sitemap::parse_sitemap(&input)
-                .expect("Error parsing sitemap:")
-        ).expect("Could not serialize sitemap:")
-    );
+    let sitemap = &mfnf_sitemap::parse_sitemap(&input)
+        .expect("Error parsing sitemap:");
+    if let Some(subtarget) = opt.subtarget {
+        let subtarget = subtarget.trim().to_lowercase();
+        for part in &sitemap.parts {
+            for chapter in &part.chapters {
+                if chapter.markers.include.subtargets.iter().any(|t| t.name == subtarget)
+                    || chapter.markers.exclude.subtargets.iter()
+                        .any(|t| t.name == subtarget && !t.parameters.is_empty()) {
+
+                    println!("{}/latest.{}", &filename_to_make(&chapter.path),
+                        &opt.target_extension.clone().unwrap_or("txt".into()))
+                }
+            }
+        }
+    } else {
+        println!("{}",
+            serde_yaml::to_string(&sitemap)
+                .expect("Could not serialize sitemap:")
+        );
+    }
 }
