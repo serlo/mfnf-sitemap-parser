@@ -15,7 +15,8 @@ pub fn book(root: &Element) -> Result<Book, String> {
 
         let heading = match heading {
             Some(h) => h,
-            None => return Err("No heading (book) of depth 1 found!".into()),
+            None => return Err(format!("line: {}: No heading (book) of depth 1 found!",
+                root.get_position().start.line)),
         };
 
         let title = extract_plain_text(&heading.caption)
@@ -44,7 +45,8 @@ pub fn book(root: &Element) -> Result<Book, String> {
         book.normalize()?;
         Ok(book)
     } else {
-        Err("Root element must be a \"Document\"!".into())
+        Err(format!("line: {}: Root element must be a \"Document\"!",
+            root.get_position().start.line))
     }
 }
 
@@ -103,8 +105,8 @@ pub fn chapter(item: &ListItem) -> Result<Chapter, String> {
         .next();
     let article_ref = match article_ref {
         Some(r) => r,
-        None => return Err("Chapter list item must have an \
-                           internal reference to an article!".into())
+        None => return Err(format!("line {}: Chapter list item must have an \
+                           internal reference to an article!", item.position.start.line))
     };
 
     let mlist = item.content.iter().filter_map(
@@ -128,7 +130,8 @@ pub fn subtarget_list(list: &List) -> Result<HashSet<Subtarget>, String> {
         let item = if let Element::ListItem(ref item) = *item {
             item
         } else {
-            return Err("Non-listitem in subtarget list!".into())
+            return Err(format!("line: {}: Non-listitem in subtarget list!",
+                list.position.start.line))
         };
         let name = extract_plain_text(&item.content)
             .trim()
@@ -159,7 +162,8 @@ pub fn marker_list(list: &List) -> Result<Markers, String> {
         let item = if let Element::ListItem(ref item) = *item {
             item
         } else {
-            return Err("Non-listitem in marker list!".into())
+            return Err(format!("line: {}: Non-listitem in marker list!",
+                list.position.start.line))
         };
 
         let content_str = extract_plain_text(&item.content);
@@ -173,7 +177,8 @@ pub fn marker_list(list: &List) -> Result<Markers, String> {
             .map(|id| id.trim().to_lowercase());
         let marker_id = match marker_id {
             Some(id) => id,
-            None => return Err("Markers must not be empty!".into())
+            None => return Err(format!("line: {}: Markers must not be empty!",
+                list.position.start.line))
         };
         let sublist = item.content.iter()
             .filter_map(|e| if let Element::List(ref l) = *e {Some(l)} else {None})
@@ -192,7 +197,8 @@ pub fn marker_list(list: &List) -> Result<Markers, String> {
             "after" => result.after = Some(AfterMarker {
                 path: value_str
             }),
-            _ => return Err(format!("unknown marker: {}", marker_id))
+            _ => return Err(format!("line: {}: unknown marker: {}",
+                item.position.start.line, marker_id))
         };
     }
     Ok(result)
