@@ -66,6 +66,7 @@ pub struct Chapter {
     pub title: String,
     pub path: String,
     pub markers: Markers,
+    pub revision: String,
 }
 
 impl PartialEq for Subtarget {

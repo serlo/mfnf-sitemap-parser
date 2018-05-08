@@ -58,14 +58,15 @@ fn main() {
 
     let subtarget = opt.subtarget.trim().to_lowercase();
     if let Some(article_extension) = opt.article_extension {
+        print!("{}: ", &subtarget);
         for part in &sitemap.parts {
             for chapter in &part.chapters {
                 if chapter.markers.include.subtargets.iter().any(|t| t.name == subtarget)
                     || chapter.markers.exclude.subtargets.iter()
                         .any(|t| t.name == subtarget && !t.parameters.is_empty()) {
 
-                    println!("{}/latest.{}", &filename_to_make(&chapter.path),
-                        &article_extension)
+                    println!("{}/{}.{} \\", &filename_to_make(&chapter.path),
+                        &chapter.revision, &article_extension)
                 }
             }
         }

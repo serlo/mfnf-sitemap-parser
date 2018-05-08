@@ -120,6 +120,7 @@ pub fn chapter(item: &ListItem) -> Result<Chapter, String> {
     Ok(Chapter {
         title: extract_plain_text(&article_ref.caption).trim().to_string(),
         path: extract_plain_text(&article_ref.target).trim().to_string(),
+        revision: "latest".into(),
         markers,
     })
 }
