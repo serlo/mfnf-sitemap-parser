@@ -10,6 +10,10 @@ name = "mfnf_sitemap"
 name = "parse_bookmap"
 path = "src/main.rs"
 
+[[bin]]
+name = "sitemap_utils"
+path = "src/sitemap_utils.rs"
+
 [dependencies]
 mediawiki_parser = "0.3"
 mwparser_utils = { git = "https://github.com/vroland/mediawiki-parser-utils" }
