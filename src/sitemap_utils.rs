@@ -33,6 +33,8 @@ fn filename_to_make(input: &str) -> String {
         .replace(":", "@COLON@")
         .replace("(", "@LBR@")
         .replace(")", "@RBR@")
+        .replace("'", "@SQUOTE@")
+        .replace('"', "@DQUOTE@")
 }
 
 fn main() {
