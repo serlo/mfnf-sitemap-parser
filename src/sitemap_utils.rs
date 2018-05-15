@@ -74,6 +74,7 @@ fn main() {
         let article_extension = target_extension_map.get(&opt.target)
             .expect(&format!("no file extension defined for target {}!", &opt.target));
 
+        print!("{}: ", &opt.subtarget);
         for part in &sitemap.parts {
             for chapter in &part.chapters {
                 if chapter.markers.include.subtargets.iter().any(|t| t.name == subtarget)
