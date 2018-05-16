@@ -10,27 +10,42 @@ use std::io::prelude::*;
 use std::io;
 use structopt::StructOpt;
 use std::collections::HashMap;
+use std::process;
 
 
 /// Extract information in various formats from a sitemap.
 #[derive(StructOpt, Debug)]
-#[structopt(name = "sitemap_utils")]
+#[structopt(name = "sitemap_utils", about = "various tools for \
+extracting information from a mfnf sitemap")]
 struct Opt {
     /// Input sitemap (yaml) file
     #[structopt(short = "i", long = "input", parse(from_os_str))]
     input_file: Option<PathBuf>,
 
-    /// The target to build for.
-    #[structopt(name = "target")]
-    target: String,
+    #[structopt(subcommand)]
+    cmd: Command
+}
 
-    /// The subtarget to consider.
-    #[structopt(name = "subtarget")]
-    subtarget: String,
-
+#[derive(StructOpt, Debug)]
+enum Command {
     /// Generate a list of dependencies for this sitemap
-    #[structopt(short = "d", long = "deps")]
-    generate_dependencies: bool,
+    #[structopt(name = "deps")]
+    Deps {
+        /// The target to build for.
+        #[structopt(name = "target")]
+        target: String,
+
+        /// The subtarget (configuration) to consider.
+        #[structopt(name = "subtarget")]
+        subtarget: String,
+    },
+    /// Get markers for an article.
+    #[structopt(name = "markers")]
+    Markers {
+        /// Name of the article to get markers for.
+        #[structopt(name = "article")]
+        article: String,
+    }
 }
 
 fn filename_to_make(input: &str) -> String {
@@ -69,29 +84,46 @@ fn main() {
     let sitemap: mfnf_sitemap::Book = serde_yaml::from_str(&input)
         .expect("Error parsing sitemap:");
 
-    let subtarget = opt.subtarget.trim().to_lowercase();
-    if opt.generate_dependencies {
-        let article_extension = target_extension_map.get(&opt.target)
-            .expect(&format!("no file extension defined for target {}!", &opt.target));
+    match opt.cmd {
+        Command::Deps { ref subtarget, ref target } => {
+            let subtarget = subtarget.trim().to_lowercase();
+            let article_extension = target_extension_map.get(target)
+                .expect(&format!("no file extension defined for target {}!", &target));
 
-        print!("{}.{}: ", &opt.subtarget, &article_extension);
-        let mut include_string = String::new();
-        for part in &sitemap.parts {
-            for chapter in &part.chapters {
-                if chapter.markers.include.subtargets.iter().any(|t| t.name == subtarget)
-                    || chapter.markers.exclude.subtargets.iter()
-                        .any(|t| t.name == subtarget && !t.parameters.is_empty()) {
+            print!("{}.{}: ", &subtarget, &article_extension);
+            let mut include_string = String::new();
+            for part in &sitemap.parts {
+                for chapter in &part.chapters {
+                    if chapter.markers.include.subtargets.iter().any(|t| t.name == subtarget)
+                        || chapter.markers.exclude.subtargets.iter()
+                            .any(|t| t.name == subtarget && !t.parameters.is_empty()) {
 
-                    let chapter_path = filename_to_make(&chapter.path);
-                    print!("{}/{}.dep {}/{}.{} ",
-                        &chapter_path, &chapter.revision,
-                        &chapter_path, &chapter.revision, &article_extension
-                    );
-                    include_string.push_str(&format!("include {}/{}.dep\n", &chapter_path, &chapter.revision));
+                        let chapter_path = filename_to_make(&chapter.path);
+                        print!("{}/{}.dep {}/{}.{} ",
+                            &chapter_path, &chapter.revision,
+                            &chapter_path, &chapter.revision, &article_extension
+                        );
+                        include_string.push_str(&format!("include {}/{}.dep\n",
+                            &chapter_path, &chapter.revision));
+                    }
                 }
             }
+            println!();
+            println!("{}", &include_string);
+        },
+        Command::Markers { ref article, .. } => {
+            let article = article.trim().to_lowercase();
+            for part in &sitemap.parts {
+                for chapter in &part.chapters {
+                    if chapter.path.trim().to_lowercase() == article {
+                        println!("{}", &serde_yaml::to_string(&chapter.markers)
+                            .expect("could not serialize markers:"));
+                        return
+                    }
+                }
+            }
+            eprintln!("chapter not found: {}", article);
+            process::exit(1);
         }
-        println!();
-        println!("{}", &include_string);
     }
 }
