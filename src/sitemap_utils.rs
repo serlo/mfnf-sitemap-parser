@@ -74,17 +74,24 @@ fn main() {
         let article_extension = target_extension_map.get(&opt.target)
             .expect(&format!("no file extension defined for target {}!", &opt.target));
 
-        print!("{}: ", &opt.subtarget);
+        print!("{}.{}: ", &opt.subtarget, &article_extension);
+        let mut include_string = String::new();
         for part in &sitemap.parts {
             for chapter in &part.chapters {
                 if chapter.markers.include.subtargets.iter().any(|t| t.name == subtarget)
                     || chapter.markers.exclude.subtargets.iter()
                         .any(|t| t.name == subtarget && !t.parameters.is_empty()) {
 
-                    print!("{}/{}.{} ", &filename_to_make(&chapter.path),
-                        &chapter.revision, &article_extension)
+                    let chapter_path = filename_to_make(&chapter.path);
+                    print!("{}/{}.dep {}/{}.{} ",
+                        &chapter_path, &chapter.revision,
+                        &chapter_path, &chapter.revision, &article_extension
+                    );
+                    include_string.push_str(&format!("include {}/{}.dep\n", &chapter_path, &chapter.revision));
                 }
             }
         }
+        println!();
+        println!("{}", &include_string);
     }
 }
