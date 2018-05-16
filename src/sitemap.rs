@@ -1,6 +1,5 @@
 //! Types representing the sitemap structure.
 
-use std::collections::HashSet;
 use std::hash::{Hash, Hasher};
 
 /// A book subtarget (e.g. `all`, `print`).
@@ -23,13 +22,13 @@ pub struct Markers {
 /// Include a range of subtargets / headings.
 #[derive(Serialize, Deserialize, Clone, PartialEq, Debug, Default)]
 pub struct IncludeMarker {
-    pub subtargets: HashSet<Subtarget>,
+    pub subtargets: Vec<Subtarget>,
 }
 
 /// Exclude a range of subtargets / headings.
 #[derive(Serialize, Deserialize, Clone, PartialEq, Debug, Default)]
 pub struct ExcludeMarker {
-    pub subtargets: HashSet<Subtarget>,
+    pub subtargets: Vec<Subtarget>,
 }
 
 /// Leave a todo message.
@@ -85,9 +84,12 @@ impl Hash for Subtarget {
 
 impl Normalize for Markers {
     fn normalize(&mut self) -> Result<(), String> {
-        if !self.include.subtargets.is_disjoint(&self.exclude.subtargets) {
-            return Err("Subtargets cannot be included and \
-                       excluded at the same time!".into())
+        for include in &self.include.subtargets {
+            if self.exclude.subtargets.contains(&include) {
+                return Err(format!("{} is included and \
+                       excluded at the same time!", &include.name))
+
+            }
         }
         Ok(())
     }
@@ -133,12 +135,12 @@ impl Normalize for Part {
         for child in &mut self.chapters {
             for subtarget in &self.markers.include.subtargets {
                 if !child_overrides(&child.markers, subtarget) {
-                    child.markers.include.subtargets.insert(subtarget.clone());
+                    child.markers.include.subtargets.push(subtarget.clone());
                 }
             }
             for subtarget in &self.markers.exclude.subtargets {
                 if !child_overrides(&child.markers, subtarget) {
-                    child.markers.exclude.subtargets.insert(subtarget.clone());
+                    child.markers.exclude.subtargets.push(subtarget.clone());
                 }
             }
         }
@@ -157,12 +159,12 @@ impl Normalize for Book {
         for child in &mut self.parts {
             for subtarget in &self.markers.include.subtargets {
                 if !child_overrides(&child.markers, subtarget) {
-                    child.markers.include.subtargets.insert(subtarget.clone());
+                    child.markers.include.subtargets.push(subtarget.clone());
                 }
             }
             for subtarget in &self.markers.exclude.subtargets {
                 if !child_overrides(&child.markers, subtarget) {
-                    child.markers.exclude.subtargets.insert(subtarget.clone());
+                    child.markers.exclude.subtargets.push(subtarget.clone());
                 }
             }
         }

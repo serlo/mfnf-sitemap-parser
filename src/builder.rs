@@ -1,7 +1,5 @@
 //! implementation of the sitemap builder.
 
-use std::collections::HashSet;
-
 use sitemap::*;
 use mediawiki_parser::*;
 use mwparser_utils::util::extract_plain_text;
@@ -125,8 +123,8 @@ pub fn chapter(item: &ListItem) -> Result<Chapter, String> {
     })
 }
 
-pub fn subtarget_list(list: &List) -> Result<HashSet<Subtarget>, String> {
-    let mut result = HashSet::new();
+pub fn subtarget_list(list: &List) -> Result<Vec<Subtarget>, String> {
+    let mut result = vec![];
     for item in &list.content {
         let item = if let Element::ListItem(ref item) = *item {
             item
@@ -149,7 +147,7 @@ pub fn subtarget_list(list: &List) -> Result<HashSet<Subtarget>, String> {
                  .collect::<Vec<String>>()
             );
 
-        result.insert(Subtarget {
+        result.push(Subtarget {
             name,
             parameters: params.unwrap_or(vec![]),
         });

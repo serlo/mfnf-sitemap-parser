@@ -126,10 +126,10 @@ fn main() {
                             name.insert(0, '.');
                             name.insert_str(0, target);
                         };
-                        let new_include = markers.include.subtargets.drain()
+                        let new_include = markers.include.subtargets.drain(..)
                             .map(|mut subtarget| {update_name(&mut subtarget.name); subtarget})
                             .collect();
-                        let new_exclude = markers.exclude.subtargets.drain()
+                        let new_exclude = markers.exclude.subtargets.drain(..)
                             .map(|mut subtarget| {update_name(&mut subtarget.name); subtarget})
                             .collect();
 
