@@ -40,11 +40,16 @@ enum Command {
         subtarget: String,
     },
     /// Get markers for an article.
+    /// Also prepend subtargets with target, like: print -> latex.print.
     #[structopt(name = "markers")]
     Markers {
         /// Name of the article to get markers for.
         #[structopt(name = "article")]
         article: String,
+
+        /// The target to prepend
+        #[structopt(name = "target")]
+        target: String,
     }
 }
 
@@ -111,12 +116,27 @@ fn main() {
             println!();
             println!("{}", &include_string);
         },
-        Command::Markers { ref article, .. } => {
+        Command::Markers { ref article, ref target } => {
             let article = article.trim().to_lowercase();
             for part in &sitemap.parts {
                 for chapter in &part.chapters {
                     if chapter.path.trim().to_lowercase() == article {
-                        println!("{}", &serde_yaml::to_string(&chapter.markers)
+                        let mut markers = chapter.markers.clone();
+                        let update_name = |name: &mut String| {
+                            name.insert(0, '.');
+                            name.insert_str(0, target);
+                        };
+                        let new_include = markers.include.subtargets.drain()
+                            .map(|mut subtarget| {update_name(&mut subtarget.name); subtarget})
+                            .collect();
+                        let new_exclude = markers.exclude.subtargets.drain()
+                            .map(|mut subtarget| {update_name(&mut subtarget.name); subtarget})
+                            .collect();
+
+                        markers.include.subtargets = new_include;
+                        markers.exclude.subtargets = new_exclude;
+
+                        println!("{}", &serde_yaml::to_string(&markers)
                             .expect("could not serialize markers:"));
                         return
                     }
