@@ -1,4 +1,6 @@
 extern crate mfnf_sitemap;
+extern crate mediawiki_parser;
+extern crate mwparser_utils;
 extern crate serde_yaml;
 #[macro_use]
 extern crate structopt;
@@ -10,15 +12,20 @@ use std::io::prelude::*;
 use std::io;
 use structopt::StructOpt;
 
+
 /// Convert a sitemap MediaWiki article to a bookmap yaml.
 ///
 /// Markers are propagated according to the marker inheritance rules.
 #[derive(StructOpt, Debug)]
 #[structopt(name = "mediawiki_bookmap")]
 struct Opt {
-    /// Input MediaWiki file
+    /// Input AST of a MediaWiki file as YAML.
     #[structopt(short = "i", long = "input", parse(from_os_str))]
     input_file: Option<PathBuf>,
+
+    /// Path to texvccheck binary to transform formulas in headings.
+    #[structopt(short = "p", long = "texvccheck-path", parse(from_os_str))]
+    texvccheck_path: Option<PathBuf>,
 }
 
 fn main() {
@@ -39,7 +46,16 @@ fn main() {
         }
     };
 
-    let sitemap = &mfnf_sitemap::parse_sitemap(&input)
+    let mut tree: mediawiki_parser::Element = serde_yaml::from_str(&input)
+        .expect("error reading input file:");
+
+    if let Some(ref path) = opt.texvccheck_path {
+        let checker = mwparser_utils::util::CachedTexChecker::new(path, 1000);
+        tree = mwparser_utils::transformations::normalize_math_formulas(tree, &checker)
+            .expect("error in formula normalization:")
+    }
+
+    let sitemap = &mfnf_sitemap::parse_sitemap(&tree)
         .expect("Error parsing sitemap:");
 
     println!("{}",
