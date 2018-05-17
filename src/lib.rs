@@ -12,12 +12,7 @@ use std::error::Error;
 
 pub use sitemap::*;
 
-pub fn parse_sitemap(input: &str) -> Result<Book, String> {
-    let tree = mediawiki_parser::parse(input);
-    // TODO: better errors
-    let tree = match tree {
-        Ok(t) => t,
-        Err(error) => return Err(error.description().into())
-    };
+
+pub fn parse_sitemap(tree: &mediawiki_parser::Element) -> Result<Book, String> {
     return builder::book(&tree);
 }
