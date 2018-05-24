@@ -2,6 +2,7 @@ extern crate mfnf_sitemap;
 extern crate serde_yaml;
 #[macro_use]
 extern crate structopt;
+extern crate mwparser_utils;
 
 use std::path::PathBuf;
 use std::fs::File;
@@ -12,6 +13,7 @@ use structopt::StructOpt;
 use std::collections::HashMap;
 use std::process;
 
+use mwparser_utils::util::filename_to_make;
 
 /// Extract information in various formats from a sitemap.
 #[derive(StructOpt, Debug)]
@@ -51,16 +53,6 @@ enum Command {
         #[structopt(name = "target")]
         target: String,
     }
-}
-
-fn filename_to_make(input: &str) -> String {
-    input.replace(" ", "_")
-        .replace(":", "@COLON@")
-        .replace("(", "@LBR@")
-        .replace(")", "@RBR@")
-        .replace("/", "@SLASH@")
-        .replace("'", "@SQUOTE@")
-        .replace('"', "@DQUOTE@")
 }
 
 fn main() {

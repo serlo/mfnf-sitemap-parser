@@ -8,10 +8,7 @@ extern crate serde_yaml;
 mod sitemap;
 mod builder;
 
-use std::error::Error;
-
 pub use sitemap::*;
-
 
 pub fn parse_sitemap(tree: &mediawiki_parser::Element) -> Result<Book, String> {
     return builder::book(&tree);
