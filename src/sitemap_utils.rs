@@ -62,6 +62,7 @@ fn main() {
     target_extension_map.insert("latex".to_string(), "tex");
     target_extension_map.insert("markdown".to_string(), "md");
     target_extension_map.insert("html".to_string(), "html");
+    target_extension_map.insert("pdf".to_string(), "pdf");
 
     let mut input = String::new();
     match opt.input_file {
@@ -86,6 +87,15 @@ fn main() {
             let subtarget = subtarget.trim().to_lowercase();
             let article_extension = target_extension_map.get(target)
                 .expect(&format!("no file extension defined for target {}!", &target));
+
+            match target.as_str() {
+                "pdf" => {
+                    println!("{}.{}: $(BASE)/book_exports/$(BOOK)/latex/{}/{}.tex",
+                        &subtarget, &article_extension, &subtarget, &subtarget);
+                    return
+                }
+                _ => (),
+            };
 
             print!("{}.{}: ", &subtarget, &article_extension);
             let mut include_string = String::new();
