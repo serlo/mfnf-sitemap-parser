@@ -40,10 +40,6 @@ enum Command {
         /// The subtarget (configuration) to consider.
         #[structopt(name = "subtarget")]
         subtarget: String,
-
-        /// Desired book revision number
-        #[structopt(name = "book-revision")]
-        revision: String,
     },
     /// Get markers for an article.
     /// Also prepend subtargets with target, like: print -> latex.print.
@@ -87,21 +83,21 @@ fn main() {
         .expect("Error parsing sitemap:");
 
     match opt.cmd {
-        Command::Deps { ref subtarget, ref target, ref revision } => {
+        Command::Deps { ref subtarget, ref target } => {
             let subtarget = subtarget.trim().to_lowercase();
             let article_extension = target_extension_map.get(target)
                 .expect(&format!("no file extension defined for target {}!", &target));
 
             match target.as_str() {
                 "pdf" => {
-                    println!("{}.{}: $(BASE)/book_exports/$(BOOK)/$(BOOK_REVISION)/latex/{}/{}.tex",
-                        &revision, &article_extension, &subtarget, &subtarget);
+                    println!("$(BOOK_REVISION).{}: $(BASE)/book_exports/$(BOOK)/$(BOOK_REVISION)/latex/{}/$(BOOK_REVISION).tex",
+                        &article_extension, &subtarget);
                     return
                 }
                 _ => (),
             };
 
-            print!("{}.{}: ", &revision, &article_extension);
+            print!("$(BOOK_REVISION).{}: ", &article_extension);
             let mut include_string = String::new();
             for part in &sitemap.parts {
                 for chapter in &part.chapters {
