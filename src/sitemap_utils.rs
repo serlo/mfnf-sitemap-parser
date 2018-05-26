@@ -94,7 +94,7 @@ fn main() {
 
             match target.as_str() {
                 "pdf" => {
-                    println!("{}.{}: $(BASE)/book_exports/$(BOOK)/latex/{}/{}.tex",
+                    println!("{}.{}: $(BASE)/book_exports/$(BOOK)/$(BOOK_REVISION)/latex/{}/{}.tex",
                         &revision, &article_extension, &subtarget, &subtarget);
                     return
                 }
