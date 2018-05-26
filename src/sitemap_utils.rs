@@ -106,11 +106,13 @@ fn main() {
                             .any(|t| t.name == subtarget && !t.parameters.is_empty()) {
 
                         let chapter_path = filename_to_make(&chapter.path);
-                        print!("{}/{}.dep {}/{}.{} ",
+                        print!("{}/{}.media-dep {}/{}.section-dep {}/{}.{} ",
+                            &chapter_path, &chapter.revision,
                             &chapter_path, &chapter.revision,
                             &chapter_path, &chapter.revision, &article_extension
                         );
-                        include_string.push_str(&format!("include {}/{}.dep\n",
+                        include_string.push_str(&format!("include {}/{}.section-dep {}/{}.media-dep\n",
+                            &chapter_path, &chapter.revision,
                             &chapter_path, &chapter.revision));
                     }
                 }
