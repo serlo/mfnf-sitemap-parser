@@ -111,7 +111,7 @@ fn main() {
                             &chapter_path, &chapter.revision,
                             &chapter_path, &chapter.revision, &article_extension
                         );
-                        include_string.push_str(&format!("include {}/{}.section-dep {}/{}.media-dep\n",
+                        include_string.push_str(&format!("include {}/{}.section-dep\n-include {}/{}.media-dep\n",
                             &chapter_path, &chapter.revision,
                             &chapter_path, &chapter.revision));
                     }
