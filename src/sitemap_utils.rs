@@ -118,7 +118,7 @@ fn main() {
                             "latex" => print!("{0}/{1}.media-dep {0}/{1}.section-dep {0}/{1}.tex ",
                                 &chapter_path, &chapter.revision,
                             ),
-                            "stats" => print!("{0}/{1}.media-dep {0}/{1}.section-dep {0}/{1}.stats.yml {0}/{1}.lints.yml",
+                            "stats" => print!("{0}/{1}.media-dep {0}/{1}.section-dep {0}/{1}.stats.yml {0}/{1}.lints.yml ",
                                 &chapter_path, &chapter.revision,
                             ),
                             _ => panic!("undefined target: {}", &target),
