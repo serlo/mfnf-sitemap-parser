@@ -63,6 +63,7 @@ fn main() {
     target_extension_map.insert("markdown".to_string(), "md");
     target_extension_map.insert("html".to_string(), "html");
     target_extension_map.insert("pdf".to_string(), "pdf");
+    target_extension_map.insert("stats".to_string(), "yml");
 
     let mut input = String::new();
     match opt.input_file {
