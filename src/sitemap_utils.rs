@@ -86,16 +86,23 @@ fn main() {
     match opt.cmd {
         Command::Deps { ref subtarget, ref target } => {
             let subtarget = subtarget.trim().to_lowercase();
-            let article_extension = target_extension_map.get(target)
-                .expect(&format!("no file extension defined for target {}!", &target));
 
             match target.as_str() {
                 "pdf" => {
-                    println!("$(BOOK_REVISION).{}: $(BASE)/book_exports/$(BOOK)/$(BOOK_REVISION)/latex/{}/$(BOOK_REVISION).tex",
-                        &article_extension, &subtarget);
+                    println!("$(BOOK_REVISION).pdf: $(BASE)/book_exports/\
+                             $(BOOK)/$(BOOK_REVISION)/latex/{}/$(BOOK_REVISION).tex",
+                        &subtarget);
                     return
                 }
                 _ => (),
+            };
+
+            let article_extension = match target.as_str() {
+                "latex" => "tex",
+                "html" => "html",
+                "pdf" => "pdf",
+                "stats" => "stats.yml",
+                _ => panic!("undefined target: {}", &target),
             };
 
             print!("$(BOOK_REVISION).{}: ", &article_extension);
@@ -107,13 +114,16 @@ fn main() {
                             .any(|t| t.name == subtarget && !t.parameters.is_empty()) {
 
                         let chapter_path = filename_to_make(&chapter.path);
-                        print!("{}/{}.media-dep {}/{}.section-dep {}/{}.{} ",
-                            &chapter_path, &chapter.revision,
-                            &chapter_path, &chapter.revision,
-                            &chapter_path, &chapter.revision, &article_extension
-                        );
-                        include_string.push_str(&format!("include {}/{}.section-dep\n-include {}/{}.media-dep\n",
-                            &chapter_path, &chapter.revision,
+                        match target.as_str() {
+                            "latex" => print!("{0}/{1}.media-dep {0}/{1}.section-dep {0}/{1}.tex ",
+                                &chapter_path, &chapter.revision,
+                            ),
+                            "stats" => print!("{0}/{1}.media-dep {0}/{1}.section-dep {0}/{1}.stats.yml {0}/{1}.lints.yml",
+                                &chapter_path, &chapter.revision,
+                            ),
+                            _ => panic!("undefined target: {}", &target),
+                        }
+                        include_string.push_str(&format!("include {0}/{1}.section-dep\n-include {0}/{1}.media-dep\n",
                             &chapter_path, &chapter.revision));
                     }
                 }
