@@ -50,7 +50,7 @@ fn main() {
         .expect("error reading input file:");
 
     if let Some(ref path) = opt.texvccheck_path {
-        let checker = mwparser_utils::util::CachedTexChecker::new(path, 1000);
+        let checker = mwparser_utils::CachedTexChecker::new(path, 1000);
         tree = mwparser_utils::transformations::normalize_math_formulas(tree, &checker)
             .expect("error in formula normalization:")
     }

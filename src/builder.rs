@@ -2,7 +2,7 @@
 
 use sitemap::*;
 use mediawiki_parser::*;
-use mwparser_utils::util::extract_plain_text;
+use mwparser_utils::extract_plain_text;
 
 pub fn book(root: &Element) -> Result<Book, String> {
     if let Element::Document(ref doc) = *root {

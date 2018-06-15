@@ -13,7 +13,7 @@ use structopt::StructOpt;
 use std::collections::HashMap;
 use std::process;
 
-use mwparser_utils::util::filename_to_make;
+use mwparser_utils::filename_to_make;
 
 /// Extract information in various formats from a sitemap.
 #[derive(StructOpt, Debug)]
