@@ -121,7 +121,7 @@ fn main() {
                             "stats" => print!("{0}/{1}.media-dep {0}/{1}.section-dep {0}/{1}.stats.yml {0}/{1}.lints.yml ",
                                 &chapter_path, &chapter.revision,
                             ),
-                            "html" => print!("{0}/{1}.media-dep {0}/{1}.section-dep {0}/{1}.tex ",
+                            "html" => print!("{0}/{1}.media-dep {0}/{1}.section-dep {0}/{1}.html ",
                                 &chapter_path, &chapter.revision,
                             ),
                             _ => panic!("undefined target: {}", &target),
