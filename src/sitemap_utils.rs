@@ -121,6 +121,9 @@ fn main() {
                             "stats" => print!("{0}/{1}.media-dep {0}/{1}.section-dep {0}/{1}.stats.yml {0}/{1}.lints.yml ",
                                 &chapter_path, &chapter.revision,
                             ),
+                            "html" => print!("{0}/{1}.media-dep {0}/{1}.section-dep {0}/{1}.tex ",
+                                &chapter_path, &chapter.revision,
+                            ),
                             _ => panic!("undefined target: {}", &target),
                         }
                         include_string.push_str(&format!("include {0}/{1}.section-dep\n-include {0}/{1}.media-dep\n",
