@@ -109,9 +109,12 @@ fn main() {
             let mut include_string = String::new();
             for part in &sitemap.parts {
                 for chapter in &part.chapters {
-                    if chapter.markers.include.subtargets.iter().any(|t| t.name == subtarget)
+                    let in_includes = chapter.markers.include.subtargets.iter().any(|t| t.name == subtarget);
+                    let in_excludes = chapter.markers.exclude.subtargets.iter().any(|t| t.name == subtarget);
+                    if in_includes
                         || chapter.markers.exclude.subtargets.iter()
-                            .any(|t| t.name == subtarget && !t.parameters.is_empty()) {
+                            .any(|t| t.name == subtarget && !t.parameters.is_empty())
+                        || !(in_includes ||  in_excludes) {
 
                         let chapter_path = filename_to_make(&chapter.path);
                         match target.as_str() {
