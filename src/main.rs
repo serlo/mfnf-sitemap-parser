@@ -1,17 +1,16 @@
-extern crate mfnf_sitemap;
 extern crate mediawiki_parser;
+extern crate mfnf_sitemap;
 extern crate mwparser_utils;
 extern crate serde_yaml;
 #[macro_use]
 extern crate structopt;
 
-use std::path::PathBuf;
 use std::fs::File;
-use std::io::BufReader;
-use std::io::prelude::*;
 use std::io;
+use std::io::prelude::*;
+use std::io::BufReader;
+use std::path::PathBuf;
 use structopt::StructOpt;
-
 
 /// Convert a sitemap MediaWiki article to a bookmap yaml.
 ///
@@ -34,20 +33,19 @@ fn main() {
     let mut input = String::new();
     match opt.input_file {
         Some(path) => {
-            BufReader::new(
-                File::open(&path).expect("Could not open input file!")
-            ).read_to_string(&mut input)
+            BufReader::new(File::open(&path).expect("Could not open input file!"))
+                .read_to_string(&mut input)
                 .expect("Could not read input file!");
         }
         None => {
             BufReader::new(io::stdin())
-            .read_to_string(&mut input)
+                .read_to_string(&mut input)
                 .expect("Could not read input file!");
         }
     };
 
-    let mut tree: mediawiki_parser::Element = serde_yaml::from_str(&input)
-        .expect("error reading input file:");
+    let mut tree: mediawiki_parser::Element =
+        serde_yaml::from_str(&input).expect("error reading input file:");
 
     if let Some(ref path) = opt.texvccheck_path {
         let checker = mwparser_utils::CachedTexChecker::new(path, 1000);
@@ -55,11 +53,10 @@ fn main() {
             .expect("error in formula normalization:")
     }
 
-    let sitemap = &mfnf_sitemap::parse_sitemap(&tree)
-        .expect("Error parsing sitemap:");
+    let sitemap = &mfnf_sitemap::parse_sitemap(&tree).expect("Error parsing sitemap:");
 
-    println!("{}",
-        serde_yaml::to_string(&sitemap)
-            .expect("Could not serialize sitemap:")
+    println!(
+        "{}",
+        serde_yaml::to_string(&sitemap).expect("Could not serialize sitemap:")
     );
 }

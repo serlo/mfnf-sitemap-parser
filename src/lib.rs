@@ -5,8 +5,8 @@ extern crate serde_derive;
 extern crate serde;
 extern crate serde_yaml;
 
-mod sitemap;
 mod builder;
+mod sitemap;
 
 pub use sitemap::*;
 

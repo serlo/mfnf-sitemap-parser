@@ -86,9 +86,11 @@ impl Normalize for Markers {
     fn normalize(&mut self) -> Result<(), String> {
         for include in &self.include.subtargets {
             if self.exclude.subtargets.contains(&include) {
-                return Err(format!("{} is included and \
-                       excluded at the same time!", &include.name))
-
+                return Err(format!(
+                    "{} is included and \
+                     excluded at the same time!",
+                    &include.name
+                ));
             }
         }
         Ok(())
@@ -99,21 +101,23 @@ fn deny_parameters(markers: &Markers) -> Result<(), String> {
     for subtarget in &markers.include.subtargets {
         if !subtarget.parameters.is_empty() {
             return Err("Include markers can only have parameters at \
-                        the chapter level!".into())
+                        the chapter level!"
+                .into());
         }
     }
     for subtarget in &markers.exclude.subtargets {
         if !subtarget.parameters.is_empty() {
             return Err("Exclude markers can only have parameters at \
-                        the chapter level!".into())
+                        the chapter level!"
+                .into());
         }
     }
     Ok(())
 }
 
 fn child_overrides(child_markers: &Markers, subtarget: &Subtarget) -> bool {
-    child_markers.include.subtargets.contains(subtarget) ||
-    child_markers.exclude.subtargets.contains(subtarget)
+    child_markers.include.subtargets.contains(subtarget)
+        || child_markers.exclude.subtargets.contains(subtarget)
 }
 
 pub trait Normalize {
@@ -152,7 +156,7 @@ impl Normalize for Part {
 }
 
 impl Normalize for Book {
-     fn normalize(&mut self) -> Result<(), String> {
+    fn normalize(&mut self) -> Result<(), String> {
         self.markers.normalize()?;
         deny_parameters(&self.markers)?;
 
@@ -172,7 +176,9 @@ impl Normalize for Book {
         for part in &mut self.parts {
             part.normalize()?;
         }
-        let new_parts = self.parts.drain(..)
+        let new_parts = self
+            .parts
+            .drain(..)
             .filter(|part| !part.chapters.is_empty())
             .collect();
 
@@ -180,5 +186,3 @@ impl Normalize for Book {
         Ok(())
     }
 }
-
-
