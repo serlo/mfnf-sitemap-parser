@@ -15,7 +15,7 @@ name = "sitemap_utils"
 path = "src/sitemap_utils.rs"
 
 [dependencies]
-mediawiki_parser = "0.3"
+mediawiki_parser = "0.4"
 mwparser_utils = { git = "https://github.com/vroland/mediawiki-parser-utils" }
 structopt = "0.2"
 serde = "1.0"
