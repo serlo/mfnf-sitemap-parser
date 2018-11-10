@@ -44,6 +44,19 @@ enum Command {
         /// The subtarget (configuration) to consider.
         #[structopt(name = "subtarget")]
         subtarget: String,
+
+        /// Prefix added to the article paths
+        #[structopt(short = "p", long = "prefix")]
+        prefix: String,
+
+        /// make target name book (all articles)
+        #[structopt(long = "book-target", parse(from_os_str))]
+        book_target: PathBuf,
+
+        /// make target name for article anchors
+        #[structopt(long = "anchors-target", parse(from_os_str))]
+        anchors_target: PathBuf,
+
     },
     /// Get markers for an article.
     /// Also prepend subtargets with target, like: print -> latex.print.
@@ -88,37 +101,24 @@ fn main() {
     match opt.cmd {
         Command::Deps {
             ref subtarget,
+            ref prefix,
+            ref book_target,
+            ref anchors_target,
             ref target,
         } => {
             let subtarget = subtarget.trim().to_lowercase();
 
-            match target.as_str() {
-                "pdf" => {
-                    println!(
-                        "$(BOOK_REVISION).pdf: $(BASE)/book_exports/\
-                         $(BOOK)/$(BOOK_REVISION)/latex/{}/$(BOOK_REVISION).tex",
-                        &subtarget
-                    );
-                    return;
-                }
-                _ => (),
-            };
-
-            let article_extension = match target.as_str() {
-                "latex" => "tex",
-                "html" => "html",
-                "pdf" => "pdf",
-                "stats" => "stats.yml",
-                _ => panic!("undefined target: {}", &target),
-            };
+            if target.as_str() == "pdf" {
+                return;
+            }
 
             // collects statements for including per-article dep files
             let mut include_string = String::new();
             // collects dependencies for book anchors file.
             let mut anchors_string = String::new();
 
-            print!("$(BOOK_REVISION).{}: ", &article_extension);
-            write!(&mut anchors_string, "$(BOOK_REVISION).anchors: ");
+            print!("{}: ", &book_target.to_string_lossy());
+            write!(&mut anchors_string, "{}: ", &anchors_target.to_string_lossy());
 
             for part in &sitemap.parts {
                 for chapter in &part.chapters {
@@ -141,29 +141,29 @@ fn main() {
                         let chapter_path = filename_to_make(&chapter.path);
 
                         print!(
-                            "{0}/{1}.media-dep {0}/{1}.section-dep ",
-                            &chapter_path, &chapter.revision
+                            "{2}{0}/{1}.media-dep {2}{0}/{1}.section-dep ",
+                            &chapter_path, &chapter.revision, prefix
                         );
 
                         write!(
                             &mut anchors_string,
-                            "{0}/{1}.anchors ",
-                            &chapter_path, &chapter.revision
+                            "{2}{0}/{1}.anchors ",
+                            &chapter_path, &chapter.revision, prefix
                         );
 
                         write!(
                             &mut include_string,
-                            "include {0}/{1}.section-dep\n-include {0}/{1}.media-dep\n",
-                            &chapter_path, &chapter.revision
+                            "include {2}{0}/{1}.section-dep\n-include {2}{0}/{1}.media-dep\n",
+                            &chapter_path, &chapter.revision, prefix
                         );
 
                         match target.as_str() {
-                            "latex" => print!("{0}/{1}.tex ", &chapter_path, &chapter.revision),
+                            "latex" => print!("{2}{0}/{1}.tex ", &chapter_path, &chapter.revision, prefix),
                             "stats" => print!(
-                                "{0}/{1}.stats.yml {0}/{1}.lints.yml ",
-                                &chapter_path, &chapter.revision
+                                "{2}{0}/{1}.stats.yml {2}{0}/{1}.lints.yml ",
+                                &chapter_path, &chapter.revision, prefix
                             ),
-                            "html" => print!("{0}/{1}.html ", &chapter_path, &chapter.revision),
+                            "html" => print!("{2}{0}/{1}.html ", &chapter_path, &chapter.revision, prefix),
                             _ => panic!("undefined target: {}", &target),
                         }
                     }
