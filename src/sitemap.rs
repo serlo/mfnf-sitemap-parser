@@ -1,6 +1,7 @@
 //! Types representing the sitemap structure.
 
 use std::hash::{Hash, Hasher};
+use std::collections::HashMap;
 
 /// A book subtarget (e.g. `all`, `print`).
 /// Parameters are only allowed for chapters.
@@ -15,6 +16,7 @@ pub struct Subtarget {
 pub struct Markers {
     pub include: IncludeMarker,
     pub exclude: ExcludeMarker,
+    pub alias: AliasMarker,
     pub todo: Option<TodoMarker>,
     pub after: Option<AfterMarker>,
 }
@@ -41,6 +43,12 @@ pub struct TodoMarker {
 #[derive(Serialize, Deserialize, Clone, PartialEq, Debug)]
 pub struct AfterMarker {
     pub path: String,
+}
+
+/// Define an alias for a subtarget.
+#[derive(Serialize, Deserialize, Clone, PartialEq, Debug, Default)]
+pub struct AliasMarker {
+    pub mapping: HashMap<String, String>,
 }
 
 /// A complete book specification.
@@ -93,6 +101,20 @@ impl Normalize for Markers {
                 ));
             }
         }
+        let include_has = | name | self.include.subtargets.iter().any(|s| &s.name == name);
+        let exclude_has = | name | self.exclude.subtargets.iter().any(|s| &s.name == name);
+
+        for (alias, subtarget) in &self.alias.mapping {
+            if include_has(alias) || exclude_has(alias) {
+                return Err(format!("{} is an alias but also present in \
+                                    include / exclude!", &subtarget))
+            }
+            if !(include_has(subtarget) || exclude_has(subtarget)) {
+                return Err(format!("{0} is an alias for {1}, but {1} is not \
+                                    present in includes or excludes!",
+                                    &alias, &subtarget))
+            }
+        }
         Ok(())
     }
 }
@@ -127,7 +149,27 @@ pub trait Normalize {
 
 impl Normalize for Chapter {
     fn normalize(&mut self) -> Result<(), String> {
-        self.markers.normalize()
+        self.markers.normalize()?;
+
+        // expand aliases
+        for (alias, subtarget) in &self.markers.alias.mapping {
+            let include = self.markers.include.subtargets.iter()
+                .find(|s| &s.name == subtarget).map(|e| e.to_owned());
+            if let Some(include) = include {
+                let mut new = include;
+                new.name = alias.clone();
+                self.markers.include.subtargets.push(new);
+            }
+
+            let exclude = self.markers.exclude.subtargets.iter()
+                .find(|s| &s.name == subtarget).map(|e| e.to_owned());
+            if let Some(exclude) = exclude {
+                let mut new = exclude;
+                new.name = alias.clone();
+                self.markers.exclude.subtargets.push(new);
+            }
+        }
+        Ok(())
     }
 }
 
@@ -147,6 +189,8 @@ impl Normalize for Part {
                     child.markers.exclude.subtargets.push(subtarget.clone());
                 }
             }
+            child.markers.alias.mapping.extend(self.markers.alias.mapping.clone());
+
         }
         for chapter in &mut self.chapters {
             chapter.normalize()?;
@@ -171,6 +215,7 @@ impl Normalize for Book {
                     child.markers.exclude.subtargets.push(subtarget.clone());
                 }
             }
+            child.markers.alias.mapping.extend(self.markers.alias.mapping.clone());
         }
 
         for part in &mut self.parts {
