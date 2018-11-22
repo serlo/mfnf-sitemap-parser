@@ -56,7 +56,6 @@ enum Command {
         /// make target name for article anchors
         #[structopt(long = "anchors-target", parse(from_os_str))]
         anchors_target: PathBuf,
-
     },
     /// Get markers for an article.
     /// Also prepend subtargets with target, like: print -> latex.print.
@@ -118,7 +117,11 @@ fn main() {
             let mut anchors_string = String::new();
 
             print!("{}: ", &book_target.to_string_lossy());
-            write!(&mut anchors_string, "{}: ", &anchors_target.to_string_lossy());
+            write!(
+                &mut anchors_string,
+                "{}: ",
+                &anchors_target.to_string_lossy()
+            );
 
             for part in &sitemap.parts {
                 for chapter in &part.chapters {
@@ -158,12 +161,16 @@ fn main() {
                         );
 
                         match target.as_str() {
-                            "latex" => print!("{2}{0}/{1}.tex ", &chapter_path, &chapter.revision, prefix),
+                            "latex" => {
+                                print!("{2}{0}/{1}.tex ", &chapter_path, &chapter.revision, prefix)
+                            }
                             "stats" => print!(
                                 "{2}{0}/{1}.stats.yml {2}{0}/{1}.lints.yml ",
                                 &chapter_path, &chapter.revision, prefix
                             ),
-                            "html" => print!("{2}{0}/{1}.html ", &chapter_path, &chapter.revision, prefix),
+                            "html" => {
+                                print!("{2}{0}/{1}.html ", &chapter_path, &chapter.revision, prefix)
+                            }
                             _ => panic!("undefined target: {}", &target),
                         }
                     }

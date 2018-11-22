@@ -233,29 +233,40 @@ pub fn subtarget_list(list: &List) -> Result<Vec<Subtarget>, String> {
 }
 
 fn alias_mapping(list: &List) -> Result<HashMap<String, String>, String> {
-    let alias_list = list.content.iter().filter_map(|e|
-    match e {
-        Element::ListItem(ref i) => Some(extract_plain_text(&i.content)),
-        _ => None,
-    }).collect::<Vec<String>>();
+    let alias_list = list
+        .content
+        .iter()
+        .filter_map(|e| match e {
+            Element::ListItem(ref i) => Some(extract_plain_text(&i.content)),
+            _ => None,
+        }).collect::<Vec<String>>();
 
-    let mut mapping = alias_list.iter().map(|s| {
-        let pairs = s.trim().split(":").map(|s| s.trim().to_string()).collect::<Vec<String>>();
-        match &pairs[..] {
-            [ref alias, ref subtarget] => Ok((alias.clone(), subtarget.clone())),
-            _ => Err("subtarget aliases must be given as list \
-                of \"alias: subtarget\"!".into())
-        }
-    }).collect::<Vec<Result<(String, String), String>>>();
+    let mut mapping = alias_list
+        .iter()
+        .map(|s| {
+            let pairs = s
+                .trim()
+                .split(":")
+                .map(|s| s.trim().to_string())
+                .collect::<Vec<String>>();
+            match &pairs[..] {
+                [ref alias, ref subtarget] => Ok((alias.clone(), subtarget.clone())),
+                _ => Err("subtarget aliases must be given as list \
+                          of \"alias: subtarget\"!"
+                    .into()),
+            }
+        }).collect::<Vec<Result<(String, String), String>>>();
 
     // throw first error
     if let Some(Err(err)) = &mapping.iter().filter(|e| e.is_err()).next() {
         return Err(err.clone());
     };
-    let result = mapping.drain(..).filter_map(|e| match e {
-        Ok(e) => Some(e),
-        Err(_) => unreachable!(),
-    }).collect::<HashMap<String, String>>();
+    let result = mapping
+        .drain(..)
+        .filter_map(|e| match e {
+            Ok(e) => Some(e),
+            Err(_) => unreachable!(),
+        }).collect::<HashMap<String, String>>();
     Ok(result)
 }
 
@@ -314,8 +325,10 @@ pub fn marker_list(list: &List) -> Result<Markers, String> {
             "todo" => result.todo = Some(TodoMarker { message: value_str }),
             "after" => result.after = Some(AfterMarker { path: value_str }),
             "alias" => if let Some(l) = sublist {
-                result.alias = AliasMarker { mapping: alias_mapping(l)? };
-            }
+                result.alias = AliasMarker {
+                    mapping: alias_mapping(l)?,
+                };
+            },
             _ => {
                 return Err(format!(
                     "line: {}: unknown marker: {}",
