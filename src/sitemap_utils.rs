@@ -1,5 +1,5 @@
 extern crate mfnf_sitemap;
-extern crate serde_yaml;
+extern crate serde_json;
 #[macro_use]
 extern crate structopt;
 extern crate mwparser_utils;
@@ -95,7 +95,7 @@ fn main() {
         }
     };
 
-    let sitemap: mfnf_sitemap::Book = serde_yaml::from_str(&input).expect("Error parsing sitemap:");
+    let sitemap: mfnf_sitemap::Book = serde_json::from_str(&input).expect("Error parsing sitemap:");
 
     match opt.cmd {
         Command::Deps {
@@ -215,7 +215,7 @@ fn main() {
 
                         println!(
                             "{}",
-                            &serde_yaml::to_string(&markers).expect("could not serialize markers:")
+                            &serde_json::to_string(&markers).expect("could not serialize markers:")
                         );
                         return;
                     }

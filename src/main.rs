@@ -1,7 +1,7 @@
 extern crate mediawiki_parser;
 extern crate mfnf_sitemap;
 extern crate mwparser_utils;
-extern crate serde_yaml;
+extern crate serde_json;
 #[macro_use]
 extern crate structopt;
 
@@ -45,7 +45,7 @@ fn main() {
     };
 
     let mut tree: mediawiki_parser::Element =
-        serde_yaml::from_str(&input).expect("error reading input file:");
+        serde_json::from_str(&input).expect("error reading input file:");
 
     if let Some(ref path) = opt.texvccheck_path {
         let checker = mwparser_utils::CachedTexChecker::new(path, 1000);
@@ -57,6 +57,6 @@ fn main() {
 
     println!(
         "{}",
-        serde_yaml::to_string(&sitemap).expect("Could not serialize sitemap:")
+        serde_json::to_string(&sitemap).expect("Could not serialize sitemap:")
     );
 }
