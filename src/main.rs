@@ -2,7 +2,6 @@ extern crate mediawiki_parser;
 extern crate mfnf_sitemap;
 extern crate mwparser_utils;
 extern crate serde_json;
-#[macro_use]
 extern crate structopt;
 
 use std::fs::File;

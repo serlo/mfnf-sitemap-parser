@@ -10,5 +10,5 @@ mod sitemap;
 pub use sitemap::*;
 
 pub fn parse_sitemap(tree: &mediawiki_parser::Element) -> Result<Book, String> {
-    return builder::book(&tree);
+    builder::book(&tree)
 }

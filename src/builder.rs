@@ -198,7 +198,7 @@ pub fn subtarget_list(list: &List) -> Result<Vec<Subtarget>, String> {
         };
         let name = extract_plain_text(&item.content)
             .trim()
-            .trim_right_matches(":")
+            .trim_right_matches(':')
             .to_lowercase();
 
         let params = item
@@ -226,7 +226,7 @@ pub fn subtarget_list(list: &List) -> Result<Vec<Subtarget>, String> {
 
         result.push(Subtarget {
             name,
-            parameters: params.unwrap_or(vec![]),
+            parameters: params.unwrap_or_else(|| vec![]),
         });
     }
     Ok(result)
@@ -246,7 +246,7 @@ fn alias_mapping(list: &List) -> Result<HashMap<String, String>, String> {
         .map(|s| {
             let pairs = s
                 .trim()
-                .split(":")
+                .split(':')
                 .map(|s| s.trim().to_string())
                 .collect::<Vec<String>>();
             match &pairs[..] {
@@ -258,7 +258,7 @@ fn alias_mapping(list: &List) -> Result<HashMap<String, String>, String> {
         }).collect::<Vec<Result<(String, String), String>>>();
 
     // throw first error
-    if let Some(Err(err)) = &mapping.iter().filter(|e| e.is_err()).next() {
+    if let Some(Err(err)) = &mapping.iter().find(|e| e.is_err()) {
         return Err(err.clone());
     };
     let result = mapping
