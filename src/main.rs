@@ -20,10 +20,6 @@ struct Opt {
     /// Input AST of a MediaWiki file as YAML.
     #[structopt(short = "i", long = "input", parse(from_os_str))]
     input_file: Option<PathBuf>,
-
-    /// Path to texvccheck binary to transform formulas in headings.
-    #[structopt(short = "p", long = "texvccheck-path", parse(from_os_str))]
-    texvccheck_path: Option<PathBuf>,
 }
 
 fn main() {
@@ -43,14 +39,8 @@ fn main() {
         }
     };
 
-    let mut tree: mediawiki_parser::Element =
+    let tree: mediawiki_parser::Element =
         serde_json::from_str(&input).expect("error reading input file:");
-
-    if let Some(ref path) = opt.texvccheck_path {
-        let checker = mwparser_utils::CachedTexChecker::new(path, 1000);
-        tree = mwparser_utils::transformations::normalize_math_formulas(tree, &checker)
-            .expect("error in formula normalization:")
-    }
 
     let sitemap = &mfnf_sitemap::parse_sitemap(&tree).expect("Error parsing sitemap:");
 
